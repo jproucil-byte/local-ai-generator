@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "local-ai-generator"
+version = "0.1.0"
+description = "A local-first image, video and audio generation desktop studio"
+requires-python = ">=3.10,<3.13"
+dependencies = ["PySide6>=6.8,<6.9"]
+
+[project.optional-dependencies]
+ai = ["torch>=2.5,<3", "diffusers>=0.36,<0.37", "transformers>=4.44,<5", "accelerate>=1,<2", "safetensors>=0.4", "huggingface-hub>=0.34,<1", "sentencepiece>=0.2", "protobuf>=4", "soundfile>=0.12", "imageio>=2.34", "imageio-ffmpeg>=0.5", "Pillow>=10"]
+
+[project.scripts]
+localaigenerator = "localaigenerator.gui:main"
+
+[tool.setuptools.packages.find]
+include = ["localaigenerator*"]
