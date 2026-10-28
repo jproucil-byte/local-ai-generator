@@ -49,10 +49,14 @@ def generate(request):
         pipe.enable_model_cpu_offload()
     else:
         pipe.to(device)
-    if hasattr(pipe, "enable_vae_slicing"):
+    vae = getattr(pipe, "vae", None)
+    # pipe.enable_vae_slicing() is deprecated in diffusers 0.36; it only forwards to the VAE.
+    if hasattr(vae, "enable_slicing"):
+        vae.enable_slicing()
+    elif hasattr(pipe, "enable_vae_slicing"):
         pipe.enable_vae_slicing()
-    if hasattr(pipe, "vae") and hasattr(pipe.vae, "enable_tiling"):
-        pipe.vae.enable_tiling()
+    if hasattr(vae, "enable_tiling"):
+        vae.enable_tiling()
     seed = request.seed if request.seed >= 0 else int.from_bytes(os.urandom(4), "little")
     generator_device = device if device in ("cuda", "xpu") else "cpu"
     kwargs = dict(prompt=request.prompt, negative_prompt=request.negative or None, num_inference_steps=request.steps, guidance_scale=request.guidance, generator=torch.Generator(device=generator_device).manual_seed(seed))

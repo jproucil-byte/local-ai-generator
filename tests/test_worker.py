@@ -58,6 +58,9 @@ class WorkerTests(unittest.TestCase):
                 self.assertIs(factory.from_pretrained.call_args.kwargs["language_model"], language_model)
             else:
                 self.assertNotIn("language_model", factory.from_pretrained.call_args.kwargs)
+            # The deprecated pipeline-level wrapper must not be used when the VAE offers slicing itself.
+            pipe.vae.enable_slicing.assert_called_once()
+            pipe.enable_vae_slicing.assert_not_called()
             done = events[-1]
             self.assertEqual(done["event"], "done")
             path = Path(done["path"])

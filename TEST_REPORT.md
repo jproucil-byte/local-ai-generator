@@ -83,3 +83,14 @@ Observed but not changed (candidates for the next version):
 - Downloads are fp32 and converted on load; fp16 variants would roughly halve disk use.
 
 Not verified: LTX Video, GPU backends other than this NVIDIA card (AMD ROCm, Intel XPU, Apple MPS), macOS, import of a local model folder, and air-gapped installation on a separate machine.
+
+## Follow-up fixes — 2026-10-18
+
+Made after the hardware run, verified by unit tests and the CI workflow only (not on the RTX 4060 again):
+
+- **`Setup-AI-GPU.bat` installed a CPU-only PyTorch on Windows.** `setup_ai.py` has a new `--backend cuda`. It reads `nvidia-smi`, picks the newest of CUDA 13.0 / 12.8 / 12.6 that the driver supports (or `--cuda-build`), removes a CPU-only PyTorch from the project environment, installs the CUDA wheel and warns if the GPU is still not usable. The launcher uses it. Unit tests cover the driver-to-build mapping, the pip arguments and the launcher. The actual wheel installation was not run here (the PyTorch download host is not reachable from the test environment).
+- **Numeric settings were reset after a model download** (steps, guidance, resolution returned to the model defaults). Only the "Downloaded" note is refreshed now. The GUI smoke test checks this.
+- **Deprecation warning for `enable_vae_slicing`** is gone: slicing is enabled on the VAE directly. A unit test checks that the deprecated call is not used.
+- **CI** has a new `gui` job that runs the offscreen Qt smoke test with PySide6 on Ubuntu.
+
+Still open: LTX Video on 8 GB VRAM, keeping a model loaded between generations, smarter offload defaults, fp16 downloads, the `torch_dtype` warning (raised inside diffusers/transformers, harmless).

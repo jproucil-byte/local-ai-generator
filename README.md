@@ -14,7 +14,7 @@ You need **64-bit Python 3.10–3.12** and a modern Windows, macOS, or Linux sys
 
 1. Download and extract the complete project. Enable **Add Python to PATH** when installing Python.
 2. Run `Start.bat`. It creates a project `.venv`, installs the interface, and opens the app.
-3. Run `Setup-AI-CPU.bat` for the portable CPU baseline. For GPU support, `Setup-AI-GPU.bat` installs the standard PyPI PyTorch build; GPU availability depends on your platform and the available wheel. It is not a universal installer for every GPU.
+3. Run `Setup-AI-CPU.bat` for the portable CPU baseline. For an **NVIDIA** GPU, run `Setup-AI-GPU.bat` instead: it reads the installed driver (`nvidia-smi`), installs the matching PyTorch CUDA build (CUDA 12.6, 12.8 or 13.0) and replaces a CPU-only PyTorch already in the project environment. The standard PyPI build is CPU-only on Windows, so a plain `pip install torch` would silently not use the GPU. The installer prints a warning if PyTorch still cannot see the GPU (usually an outdated driver). AMD and Intel GPUs are not covered by this installer on Windows.
 4. Open the app, select a model, review its model card and license, then select **Download model**.
 5. When the download finishes, enter a prompt and select **Generate**. Generation now works offline.
 
@@ -30,7 +30,7 @@ python3 setup_ai.py --backend cpu
 python3 start.py
 ```
 
-Qt may require system X11/Wayland libraries. CPU is the default installation route. For NVIDIA, AMD ROCm, or Intel XPU, first install the appropriate PyTorch build using the [official installer](https://pytorch.org/get-started/locally/) **inside the project `.venv`**, then run:
+Qt may require system X11/Wayland libraries. CPU is the default installation route. For an NVIDIA GPU run `python3 setup_ai.py --backend cuda` (the build is chosen from the installed driver; `--cuda-build cu126|cu128|cu130` overrides it). For AMD ROCm or Intel XPU, first install the appropriate PyTorch build using the [official installer](https://pytorch.org/get-started/locally/) **inside the project `.venv`**, then run:
 
 ```bash
 python3 setup_ai.py --backend existing

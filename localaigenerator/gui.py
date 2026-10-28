@@ -255,6 +255,11 @@ class Window(QMainWindow):
         self.steps.setValue(model.steps)
         self.guidance.setValue(model.guidance)
         self.local.clear()
+        self.refresh_model_note()
+
+    def refresh_model_note(self):
+        # Separate from change_model so a finished download does not reset the user's settings.
+        model = get_model(self.models.currentData())
         ready = any((model_root() / model.key / name).exists() for name in (".localaigenerator-complete", ".localaigenerator-complete"))
         self.note.setText(("✓ Downloaded. " if ready else "Model not downloaded yet. ") + model.note)
 
@@ -327,33 +332,36 @@ class Window(QMainWindow):
                 event = json.loads(line)
             except (ValueError, UnicodeError):
                 continue
-            if event.get("event") == "status":
-                self.status.setText(event["text"])
-                self.log.appendPlainText(event["text"])
-            elif event.get("event") == "progress":
-                self.progress.setRange(0, 100)
-                self.progress.setValue(event["value"])
-            elif event.get("event") == "error":
-                self.received_error = True
-                self.status.setText("The operation failed. See the log for details.")
-                self.log.appendPlainText(event["text"])
-            elif event.get("event") == "done":
-                self.received_done = True
-                if "device" in event:
-                    self.status.setText("Device: " + event["name"])
-                elif event.get("download"):
-                    self.change_model()
-                    self.status.setText("Model downloaded. You can now generate offline.")
+            self.handle_event(event)
+
+    def handle_event(self, event):
+        if event.get("event") == "status":
+            self.status.setText(event["text"])
+            self.log.appendPlainText(event["text"])
+        elif event.get("event") == "progress":
+            self.progress.setRange(0, 100)
+            self.progress.setValue(event["value"])
+        elif event.get("event") == "error":
+            self.received_error = True
+            self.status.setText("The operation failed. See the log for details.")
+            self.log.appendPlainText(event["text"])
+        elif event.get("event") == "done":
+            self.received_done = True
+            if "device" in event:
+                self.status.setText("Device: " + event["name"])
+            elif event.get("download"):
+                self.refresh_model_note()
+                self.status.setText("Model downloaded. You can now generate offline.")
+            else:
+                self.result = event["path"]
+                self.open_button.setEnabled(True)
+                pixmap = QPixmap(self.result)
+                if not pixmap.isNull():
+                    self.preview.setPixmap(pixmap.scaled(400, 400, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
                 else:
-                    self.result = event["path"]
-                    self.open_button.setEnabled(True)
-                    pixmap = QPixmap(self.result)
-                    if not pixmap.isNull():
-                        self.preview.setPixmap(pixmap.scaled(400, 400, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
-                    else:
-                        self.preview.setText("✓ Done\n\n" + Path(self.result).name + "\n\nOpen the result in your media player.")
-                    self.status.setText(f"Done · seed {event['seed']}")
-                    self.log.appendPlainText(self.result)
+                    self.preview.setText("✓ Done\n\n" + Path(self.result).name + "\n\nOpen the result in your media player.")
+                self.status.setText(f"Done · seed {event['seed']}")
+                self.log.appendPlainText(self.result)
 
     def read_stderr(self):
         text = bytes(self.process.readAllStandardError()).decode("utf-8", errors="replace")
