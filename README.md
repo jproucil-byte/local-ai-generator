@@ -1,26 +1,26 @@
 # Local Ai Generator
 
-Samostatné Python studio pro **lokální obrázky, krátká videa a zvuky**. Nové tmavé rozhraní s fialovým akcentem, oddělené AI procesy a žádné placené generovací API.
+A Python desktop studio for **offline image, short video, and audio generation**. A dark interface with purple accents, isolated AI worker processes, and no paid generation APIs.
 
-**Verze 0.1.0 — první vývojové vydání.** Aplikace není zárukou fungování každého modelu na každém počítači. Podpora zařízení znamená dostupný backend a CPU fallback; potřebná RAM, ovladače a rychlost se liší. Produkční kvalitu a kompatibilitu je nutné ověřit na cílových strojích.
+**Version 0.1.0 — initial development release.** The app, messages, installers, and documentation are currently English-only. Hardware support means an available backend and a CPU fallback; memory requirements and speed depend on your computer and model. Production quality and compatibility still need to be verified on target devices.
 
-![Rozhraní](preview.png)
+![Local Ai Generator interface](preview.png)
 
-## První spuštění
+## Getting started
 
-Potřebujete **64bit Python 3.10–3.12**, moderní Windows, macOS nebo Linux. Internet je potřeba pro první instalaci knihoven a stažení modelů. Váhy nejsou součástí balíčku.
+You need **64-bit Python 3.10–3.12** and a modern Windows, macOS, or Linux system. Internet access is required to install dependencies and download models initially. Model weights are not bundled.
 
 ### Windows
 
-1. Rozbalte celý projekt. Při instalaci Pythonu zaškrtněte **Add Python to PATH**.
-2. Spusťte `Start.bat`. Vytvoří `.venv`, nainstaluje rozhraní a otevře aplikaci.
-3. Pro univerzální CPU základ spusťte `Setup-AI-CPU.bat`. Pro GPU můžete použít `Setup-AI-GPU.bat`; instalační skript použije standardní PyPI sestavení PyTorch, jehož GPU podpora závisí na platformě a dostupném wheelu. Není to univerzální instalátor všech GPU.
-4. Otevřete aplikaci, vyberte model, přečtěte jeho kartu a klikněte na **Stáhnout model**.
-5. Po dokončení zadejte prompt a stiskněte **Vytvořit**. Generování se obejde bez internetu.
+1. Download and extract the complete project. Enable **Add Python to PATH** when installing Python.
+2. Run `Start.bat`. It creates a project `.venv`, installs the interface, and opens the app.
+3. Run `Setup-AI-CPU.bat` for the portable CPU baseline. For GPU support, `Setup-AI-GPU.bat` installs the standard PyPI PyTorch build; GPU availability depends on your platform and the available wheel. It is not a universal installer for every GPU.
+4. Open the app, select a model, review its model card and license, then select **Download model**.
+5. When the download finishes, enter a prompt and select **Generate**. Generation now works offline.
 
 ### macOS
 
-`python3 start.py` otevře rozhraní. `python3 setup_ai.py --backend cpu` nainstaluje AI engine; na Macu používá standardní sestavení PyTorch s MPS na podporovaných Apple Silicon počítačích. Lze použít také `Start.command` a `Setup-AI.command` (případně nejprve `chmod +x *.command`). Intel Mac používá CPU, pokud pro danou kombinaci Pythonu a systému existuje podporované sestavení PyTorch.
+Run `python3 start.py` to open the interface. Run `python3 setup_ai.py --backend cpu` to install the AI engine; on macOS this uses the standard PyTorch build with MPS on supported Apple Silicon devices. You can also use `Start.command` and `Setup-AI.command` (run `chmod +x *.command` first if necessary). Intel Macs use CPU when a supported PyTorch build exists for the Python and OS combination.
 
 ### Linux
 
@@ -30,89 +30,89 @@ python3 setup_ai.py --backend cpu
 python3 start.py
 ```
 
-Qt může vyžadovat systémové knihovny X11/Wayland. CPU je výchozí instalační cesta. Pro NVIDIA, AMD ROCm nebo Intel XPU nejprve nainstalujte vhodné sestavení PyTorch podle [oficiálního instalátoru](https://pytorch.org/get-started/locally/) **do projektového `.venv`**, pak spusťte:
+Qt may require system X11/Wayland libraries. CPU is the default installation route. For NVIDIA, AMD ROCm, or Intel XPU, first install the appropriate PyTorch build using the [official installer](https://pytorch.org/get-started/locally/) **inside the project `.venv`**, then run:
 
 ```bash
 python3 setup_ai.py --backend existing
 ```
 
-Pro Windows je Python v `.venv\Scripts\python.exe`, pro macOS/Linux v `.venv/bin/python`. Instalace CPU i GPU knihoven může zabrat několik GB. Přenos celého `.venv` mezi různými OS není podporovaný.
+The environment's Python executable is `.venv\Scripts\python.exe` on Windows and `.venv/bin/python` on macOS/Linux. Installing CPU or GPU dependencies can require several GB of disk space. Moving an entire `.venv` between operating systems is not supported.
 
-## Co umí
+## Features
 
-- Obrázky přes SD 1.5, SDXL Base a SDXL Turbo → PNG.
-- Krátké video z textu přes LTX Video → MP4. Zvukovou stopu video negeneruje.
-- Zvuky a krátké hudební textury přes AudioLDM 2 → WAV, 16 kHz. Není to plnohodnotný generátor hotových písní ani samostatný dabingový engine.
-- Auto / CPU / CUDA či ROCm / Apple MPS / Intel XPU podle použitého PyTorch.
-- CUDA model CPU offload a VAE slicing/tiling, kde je pipeline podporuje.
-- Výběr kompletní lokální Diffusers složky odpovídající vybranému typu modelu. Libovolné jiné architektury, GGUF, LoRA a samotné checkpointy tato verze nepodporuje.
-- Seed, negativní prompt, kroky, guidance, rozlišení, snímky/FPS nebo délka zvuku.
-- Průběh operace, chyby, ukončení pracovního procesu a náhled obrázku.
-- Každý výsledek má samostatnou unikátní složku a JSON s parametry. Předchozí výstupy se nepřepisují.
+- Images through SD 1.5, SDXL Base, and SDXL Turbo → PNG.
+- Short text-to-video clips through LTX Video → MP4. Video generation does not create an audio track.
+- Sounds and short musical textures through AudioLDM 2 → WAV, 16 kHz. This is not a full-song generator or a dedicated dubbing engine.
+- Auto / CPU / CUDA or ROCm / Apple MPS / Intel XPU selection, depending on the installed PyTorch build.
+- CUDA model CPU offload and VAE slicing/tiling where supported by the pipeline.
+- Import of a complete local Diffusers folder matching the selected model architecture. Other architectures, GGUF, LoRA, and standalone checkpoint files are not supported in this version.
+- Seed, negative prompt, inference steps, guidance, resolution, video frames/FPS, and audio duration controls.
+- Progress reporting, error logs, worker process cancellation, and image previews.
+- A unique directory and a settings JSON for each result. Existing outputs are not overwritten.
 
-Převzaty jsou jen obecné principy workflow známé z MicrostockForge, například Auto/GPU/CPU a lokální načítání modelů. Implementace je nová; soukromý zdrojový kód MicrostockForge není zkopírovaný.
+The app uses general workflow ideas familiar from MicrostockForge, such as Auto/GPU/CPU selection and local model loading. Its implementation is independent; no private MicrostockForge source code is included.
 
-## Přejmenování
+## App and repository names
 
-Program se nově jmenuje **Local Ai Generator**, Python balíček `localaigenerator` a repozitář `local-ai-generator`. Pokud již existují data předchozí verze Local Ai Generator, aplikace použije původní adresář a rozpozná staré značky dokončeného stažení. Modely není nutné stahovat znovu. Podporuje také původní proměnnou `LOCALAIGENERATOR_HOME`.
+The app is named **Local Ai Generator**, its Python package is `localaigenerator`, and its repository is `local-ai-generator`. If data from the earlier Local Ai Generator release already exists, the app reuses that directory and recognizes its download completion markers. Models do not need to be downloaded again. The legacy `LOCALAIGENERATOR_HOME` environment override is also supported.
 
-## Modely a hardware
+## Models and hardware
 
-| Model | Použití | Praktické očekávání |
+| Model | Use | Practical expectations |
 |---|---|---|
-| SD 1.5 | Obrázky 512 px, menší model | Začněte zde na méně výkonných počítačích. CPU je pomalé. |
-| SDXL Base | Detailnější obrázky kolem 1024 px | Vyšší nároky na RAM/VRAM, CUDA offload může pomoci. |
-| SDXL Turbo | Rychlé náhledy | 1–4 kroky, guidance 0, výchozí 512 px. |
-| LTX Video | Krátké tiché klipy | GPU doporučené; video na CPU může trvat velmi dlouho. |
-| AudioLDM 2 | Zvuky / hudební textury | 1–10 s, nekomerční model. |
+| SD 1.5 | Smaller image model, 512 px | Start here on less powerful computers. CPU generation is slow. |
+| SDXL Base | Detailed images around 1024 px | Higher RAM/VRAM requirements; CUDA CPU offload may help. |
+| SDXL Turbo | Fast previews | 1–4 steps, guidance 0, 512 px by default. |
+| LTX Video | Short silent clips | A GPU is recommended; CPU generation can take a very long time. |
+| AudioLDM 2 | Sounds / musical textures | 1–10 seconds; non-commercial model. |
 
-Přesné nároky nejsou zaručené. Závisí na modelu, rozlišení, délce, přesnosti vah a OS. Slabý počítač může selhat i v CPU režimu kvůli RAM. Při nedostatku paměti snižte rozlišení či počet snímků, zavřete další aplikace nebo zvolte menší model. MPS používá konzervativně float32, takže může spotřebovat více paměti. XPU a ROCm jsou dostupné pouze s odpovídajícím PyTorch/ovladači; nejsou zde ověřeny.
+Exact resource requirements are not guaranteed. They depend on the model, resolution, duration, weight precision, and OS. Computers with insufficient RAM can fail even in CPU mode. If memory runs out, reduce the resolution or frame count, close other applications, or choose a smaller model. MPS uses conservative float32 precision, which can require more memory. XPU and ROCm require compatible PyTorch builds and drivers; they have not been verified here.
 
-LTX používá šířku/výšku v násobcích 32 a počet snímků `8n+1` (např. 25, 49, 81). Přibližná délka exportu = počet snímků / FPS. Výchozích 25 snímků při 24 FPS je přibližně 1,04 s. Audio prompt i obrazové prompty doporučujeme psát anglicky; offline překladač není součástí aplikace.
+LTX requires dimensions divisible by 32 and `8n+1` frames (for example, 25, 49, or 81). Approximate exported duration = frames / FPS. The default 25 frames at 24 FPS produces about 1.04 seconds. English prompts are recommended for both image and audio models; an offline translator is not included.
 
-## Offline režim a modelové soubory
+## Offline mode and model files
 
-Generovací proces před importem knihoven nastavuje `HF_HUB_OFFLINE=1`, `TRANSFORMERS_OFFLINE=1`, vypíná HF telemetry a načítá `local_files_only=True`. Stahování je samostatná explicitní akce. Aplikace nepoužívá vzdálené generovací API. Pro silné oddělení od sítě můžete po instalaci síť zcela odpojit; model musí být kompletně připravený.
+Before importing the AI libraries, the generation worker sets `HF_HUB_OFFLINE=1`, `TRANSFORMERS_OFFLINE=1`, disables Hugging Face telemetry, and loads models with `local_files_only=True`. Downloading is a separate explicit action. The app does not use remote generation APIs. You can disconnect the computer from the network after installation and model preparation.
 
-Stažení modelu je označeno jako hotové až po úspěšném návratu downloaderu. Přerušené stažení lze spustit znovu. Downloader vybírá Diffusers komponenty, nikoli všechny jednotlivé checkpointy v repozitáři. Úplnost jednotlivých komponent se definitivně ověřuje při načítání pipeline. HF repozitáře se mohou měnit; aplikace v této verzi nepřipíná konkrétní revize vah.
+Downloads are marked complete only after the downloader returns successfully. Interrupted downloads can be resumed by selecting **Download model** again. The downloader selects Diffusers components rather than every standalone checkpoint in a repository. Each component is finally validated when loading the pipeline. Hugging Face repositories may change; this version does not pin model weights to a specific revision.
 
-Modely a nastavení se ukládají mimo zdrojový projekt:
+Models and settings are stored outside the source project:
 
 - Windows: `%LOCALAPPDATA%\LocalAiGenerator`
 - macOS: `~/Library/Application Support/LocalAiGenerator`
-- Linux: `~/.local/share/local-ai-generator` (respektuje `XDG_DATA_HOME`)
-- Volitelný vlastní adresář: proměnná `LOCALAIGENERATOR_HOME`.
+- Linux: `~/.local/share/local-ai-generator` (respects `XDG_DATA_HOME`)
+- Custom location: set `LOCALAIGENERATOR_HOME`.
 
-Přenos na počítač bez sítě: nejprve na připojeném počítači nainstalujte knihovny a stáhněte váhy; kompletní modelovou složku přeneste a zvolte ji v aplikaci. Knihovny na cílovém OS instalujte z odpovídajících předem stažených wheelů. Pokud model vyžaduje autorizaci, použijte Hugging Face CLI v prostředí projektu (`hf auth login`) nebo importujte už staženou oprávněně získanou složku. GUI vlastní login neposkytuje.
+For a computer without internet access, prepare the dependencies and model weights on a connected computer first. Transfer a complete model folder and select it in the app. Install dependencies on the target OS using matching pre-downloaded wheels. If a model requires authorization, use the Hugging Face CLI in the project environment (`hf auth login`) or import an authorized, previously downloaded model folder. The GUI does not provide its own sign-in screen.
 
-Zastavení ukončí pracovní proces. Může zůstat prázdná úlohová složka nebo soubor `pending`; aplikace ho neoznačí jako hotový výsledek. Výstupní JSON obsahuje také prompt a lokální cesty, proto jej před sdílením zkontrolujte.
+Stopping a job terminates the worker process. An empty job folder or an incomplete `pending` file may remain; it is not reported as a completed result. Output JSON files contain prompts and local paths, so review them before sharing.
 
-## Licence modelů a projektu
+## Model and project licenses
 
-Veřejný repozitář automaticky neznamená právo ke komerčnímu použití každého modelu. Váhy nejsou redistribuované a licence modelu není licence aplikace.
+A public repository does not automatically grant commercial-use rights for every model. Model weights are not redistributed, and their licenses are separate from the app's license.
 
 - [SD 1.5](https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5)
 - [SDXL Base](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0)
 - [SDXL Turbo](https://huggingface.co/stabilityai/sdxl-turbo)
 - [LTX Video](https://huggingface.co/Lightricks/LTX-Video)
-- [AudioLDM 2](https://huggingface.co/cvssp/audioldm2): karta uvádí **CC-BY-NC-SA-4.0**, tedy nekomerční použití.
+- [AudioLDM 2](https://huggingface.co/cvssp/audioldm2): its model card specifies **CC-BY-NC-SA-4.0**, for non-commercial use.
 
-Projektová licence zatím není zvolená; viz `LICENSE-NOTICE.md`. Závislosti mají vlastní licence. PySide6/Qt nabízí LGPL/GPL a komerční licencování; při budoucí distribuci zabalených binárek zachovejte příslušná licenční oznámení a podmínky. Toto vydání distribuuje zdrojový projekt, nikoli zabalený Qt/PyTorch runtime nebo modelové váhy.
+The project license has not been selected yet; see `LICENSE-NOTICE.md`. Dependencies retain their own licenses. PySide6/Qt offers LGPL/GPL and commercial licensing; future binary distributions must preserve applicable license notices and requirements. This release distributes project source code, not a bundled Qt/PyTorch runtime or model weights.
 
-## Vývoj a testování
+## Development and testing
 
 ```bash
 python -m unittest discover -s tests -v
 python -m compileall -q localaigenerator start.py setup_ai.py
 ```
 
-Testy jádra nepotřebují PyTorch, váhy ani síť. Ověřují validaci, výběr backendu, přerušené stahování a exportní cesty s náhradami AI knihoven. Neprokazují kvalitu reálného modelu ani jeho funkčnost na všech GPU. Volitelný GUI smoke test: `QT_QPA_PLATFORM=offscreen python tests/gui_smoke.py` po instalaci GUI.
+Core tests need no PyTorch, model weights, or network access. They cover validation, device selection, interrupted downloads, and export paths using substitutes for AI libraries. They do not demonstrate full-model quality or compatibility with every GPU. Optional GUI smoke test after installing the interface: `QT_QPA_PLATFORM=offscreen python tests/gui_smoke.py`.
 
-GitHub Actions je připraven pro Windows/macOS/Linux a Python 3.10/3.12. Workflow není spuštěné, dokud projekt není v repozitáři. Před stabilním veřejným vydáním je potřeba reálné generování s každým vybraným modelem a kontrola instalace na cílových systémech.
+GitHub Actions includes Windows/macOS/Linux and Python 3.10/3.12 test jobs. Check the repository's Actions tab for actual run results. Before a stable public release, full-model generation and installation on target operating systems still need verification. See `TEST_REPORT.md` for completed checks and limitations.
 
-## GitHub repozitář
+## GitHub repository
 
-Projekt je vyvíjen v soukromém repozitáři [jproucil-byte/local-ai-generator](https://github.com/jproucil-byte/local-ai-generator). Název aplikace je **Local Ai Generator**; název repozitáře se může lišit.
+Development takes place in the private repository [jproucil-byte/local-ai-generator](https://github.com/jproucil-byte/local-ai-generator). The app name and repository name can differ.
 
 ```bash
 git clone https://github.com/jproucil-byte/local-ai-generator.git
@@ -120,4 +120,4 @@ cd local-ai-generator
 python start.py
 ```
 
-Pro soukromý repozitář je potřeba přihlášení s oprávněním číst jeho obsah. Veřejnost repozitáře lze změnit později v jeho nastavení. Modelové váhy, `.venv`, osobní nastavení a výstupy do GitHubu nepatří.
+Access to a private repository requires an authorized GitHub account. Repository visibility can be changed later in its settings. Model weights, `.venv`, personal settings, and generated outputs do not belong in Git.

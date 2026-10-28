@@ -36,7 +36,7 @@ def select_device(torch, requested="auto"):
     if requested == "auto":
         return next(d for d in ("cuda", "mps", "xpu", "cpu") if available[d])
     if requested not in available or not available[requested]:
-        raise ValueError(f"Zařízení {requested} není dostupné. Zvolte Auto nebo CPU.")
+        raise ValueError(f"Device {requested} is unavailable. Select Auto or CPU.")
     return requested
 
 
@@ -61,25 +61,25 @@ class Request:
     def validate(self):
         model = get_model(self.model)
         if not self.prompt.strip():
-            raise ValueError("Zadejte popis toho, co chcete vytvořit.")
+            raise ValueError("Enter a description of what you want to create.")
         if not self.output.strip():
-            raise ValueError("Vyberte výstupní složku.")
+            raise ValueError("Choose an output folder.")
         if not 1 <= self.steps <= 150 or not 0 <= self.guidance <= 30:
-            raise ValueError("Kroky musí být 1–150, guidance 0–30.")
+            raise ValueError("Steps must be 1–150 and guidance must be 0–30.")
         if not -1 <= self.seed <= 2**32 - 1:
-            raise ValueError("Seed musí být -1 nebo celé číslo 0–4294967295.")
+            raise ValueError("Seed must be -1 or an integer from 0 to 4294967295.")
         if self.device not in ("auto", "cuda", "mps", "xpu", "cpu"):
-            raise ValueError("Neznámé zařízení.")
+            raise ValueError("Unknown device.")
         if model.kind != "audio":
             divisor = 32 if model.kind == "video" else 8
             if any(n < 256 or n > 2048 or n % divisor for n in (self.width, self.height)):
-                raise ValueError(f"Rozměry musí být 256–2048 a násobky {divisor}.")
+                raise ValueError(f"Dimensions must be 256–2048 and multiples of {divisor}.")
         if model.kind == "video" and (not 9 <= self.frames <= 161 or (self.frames - 1) % 8 or not 1 <= self.fps <= 60):
-            raise ValueError("LTX: počet snímků musí být 8n+1 (9–161), FPS 1–60.")
+            raise ValueError("LTX requires 8n+1 frames (9–161) and 1–60 FPS.")
         if model.kind == "audio" and not 1 <= self.seconds <= 10:
-            raise ValueError("Zvuk: délka musí být 1–10 sekund.")
+            raise ValueError("Audio duration must be 1–10 seconds.")
         if model.key == "turbo" and (self.steps > 4 or self.guidance != 0):
-            raise ValueError("SDXL Turbo vyžaduje 1–4 kroky a guidance 0.")
+            raise ValueError("SDXL Turbo requires 1–4 steps and guidance 0.")
         return self
 
     def to_dict(self):

@@ -62,8 +62,8 @@ class CoreTests(unittest.TestCase):
     def test_settings_corruption_and_atomic_roundtrip(self):
         with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ, {"LOCALAIGENERATOR_HOME": folder}):
             self.assertEqual(load_settings(), {})
-            save_settings({"output": "žluťoučký"})
-            self.assertEqual(load_settings()["output"], "žluťoučký")
+            save_settings({"output": "folder-\u017e\u0165\u010d"})
+            self.assertEqual(load_settings()["output"], "folder-\u017e\u0165\u010d")
             (Path(folder) / "settings.json").write_text("broken")
             self.assertEqual(load_settings(), {})
 

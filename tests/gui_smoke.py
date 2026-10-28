@@ -48,6 +48,6 @@ with tempfile.TemporaryDirectory() as folder:
         app.processEvents()
         time.sleep(0.01)
     assert window.process is None
-    assert "Zastaveno" in window.status.text()
+    assert "Stopped" in window.status.text()
     window.close()
 print("GUI smoke: modes, subprocess completion/error, cancellation OK")

@@ -19,7 +19,7 @@ Version: 0.1.0. Environment: Linux x86_64, Python 3.12.14.
 - Actual model inference with LTX Video or AudioLDM 2.
 - Real GPU execution on NVIDIA, AMD ROCm, Intel XPU or Apple MPS.
 - Installation/execution on Windows or macOS.
-- GitHub Actions runs (workflow prepared; no new repository exists yet).
+- GitHub Actions results (workflow committed to the repository; remote run results have not been verified).
 - Air-gapped installation on a separate machine.
 
 The interface and CPU image path are functional; video/audio integration remains experimental pending full-model tests. Mocked export tests do not substitute for real model inference. Hardware compatibility depends on OS, PyTorch build, drivers, RAM and the selected model.
@@ -39,3 +39,7 @@ These are the Linux test environment versions, not a cross-platform lockfile. Th
 ## Rename validation — 2026-10-08
 
 Renamed UI, Python package, launchers, documentation and repository references to Local Ai Generator. All 16 unit tests and the Qt GUI smoke test passed. Added compatibility with existing LocalAiGenerator data directories, completion markers and environment overrides. Real model inference was not repeated for this branding change.
+
+## English-only interface — 2026-10-09
+
+Translated the complete interface, model descriptions, validation messages, worker status and errors, and README into English. Existing setup scripts and code comments were already English. Set English locale defaults and use Qt folder dialogs to avoid localized native system dialogs. Updated the interface screenshot. All 16 unit tests and the GUI smoke test passed. Model inference was not repeated for this language-only change. The copyright holder retains their original proper name.
