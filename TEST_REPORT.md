@@ -43,3 +43,15 @@ Renamed UI, Python package, launchers, documentation and repository references t
 ## English-only interface — 2026-10-09
 
 Translated the complete interface, model descriptions, validation messages, worker status and errors, and README into English. Existing setup scripts and code comments were already English. Set English locale defaults and use Qt folder dialogs to avoid localized native system dialogs. Updated the interface screenshot. All 16 unit tests and the GUI smoke test passed. Model inference was not repeated for this language-only change. The copyright holder retains their original proper name.
+
+## Windows fixes and desktop check — 2026-10-18
+
+GitHub Actions failed on `windows-latest` / Python 3.10 (the Windows 3.12 and macOS 3.10 jobs were cancelled by fail-fast) because `data_root()` always evaluated `Path.home()`, which raises on Windows when the environment is cleared, as one unit test does. The home directory is now resolved only when it is actually needed. A new regression test covers this; whether the Windows jobs pass is confirmed by the Actions run, not by this report.
+
+Found and fixed: the worker printed its JSON events with non-ASCII characters. The GUI reads the pipe as UTF-8, but Windows pipes use the system code page (cp1250 on a Czech system), so the status text containing "…" and any result path with diacritics (for example `C:\Users\Jiří\…`) were silently dropped, leaving the GUI without a confirmed result even though the image was saved. Events are now ASCII-only JSON. A new test runs the worker under cp1250, cp437 and UTF-8 and fails on the previous code.
+
+Results: 18 unit tests pass (2 new) and the new tests fail on the previous code; Python compilation passes.
+
+Checked in the real Windows desktop app (Python 3.12 virtual environment, Czech system locale): the validation message for an empty prompt, a Czech prompt with diacritics, a clear error and a clean return to the idle state when no model is downloaded, and the Stop button while the worker is starting.
+
+Still not verified: any generation from the standard data directory on this machine (no model was downloaded there during this check), SDXL Base and SDXL Turbo, LTX Video and AudioLDM 2 inference, CPU generation in the GUI, import of a local model folder, and GPU backends other than the earlier CUDA run (SD 1.5, 512 × 512, 10 steps, seed 42).

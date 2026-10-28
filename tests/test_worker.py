@@ -2,6 +2,7 @@ from contextlib import nullcontext
 import json
 import os
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 from types import SimpleNamespace
@@ -12,6 +13,20 @@ from localaigenerator import worker
 
 
 class WorkerTests(unittest.TestCase):
+    def test_events_survive_non_utf8_console_encodings(self):
+        # The GUI parses the worker's stdout as UTF-8 JSON. Windows pipes use the system code page,
+        # so events with diacritics or an ellipsis must stay pure ASCII to arrive intact.
+        code = "from localaigenerator import worker; worker.emit('status', text='Loading\\u2026'); worker.emit('done', path='C:\\\\Users\\\\Ji\\u0159\\u00ed\\\\creation.png', seed=7)"
+        root = Path(__file__).resolve().parent.parent
+        for encoding in ("cp1250", "cp437", "utf-8"):
+            with self.subTest(encoding=encoding):
+                result = subprocess.run([sys.executable, "-c", code], cwd=root, env={**os.environ, "PYTHONIOENCODING": encoding}, capture_output=True)
+                self.assertEqual(result.returncode, 0, result.stderr.decode("utf-8", "replace"))
+                events = [json.loads(line) for line in result.stdout.splitlines() if line.strip()]
+                self.assertEqual([event["event"] for event in events], ["status", "done"])
+                self.assertEqual(events[0]["text"], "Loading\u2026")
+                self.assertEqual(events[1]["path"], "C:\\Users\\Ji\u0159\u00ed\\creation.png")
+
     def run_model(self, key):
         with tempfile.TemporaryDirectory() as folder:
             source = Path(folder) / "source"

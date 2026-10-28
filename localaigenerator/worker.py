@@ -13,7 +13,9 @@ from .core import Request, model_root, select_device
 
 
 def emit(event, **values):
-    print(json.dumps({"event": event, **values}, ensure_ascii=False), flush=True)
+    # ASCII-only JSON: the GUI decodes the pipe as UTF-8, but Windows pipes use the system
+    # code page (e.g. cp1250), so non-ASCII text (diacritics in paths, "…") would be dropped.
+    print(json.dumps({"event": event, **values}), flush=True)
 
 
 def generate(request):

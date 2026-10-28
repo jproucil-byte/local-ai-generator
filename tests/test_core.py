@@ -19,6 +19,11 @@ class CoreTests(unittest.TestCase):
             legacy.mkdir()
             self.assertEqual(data_root(), legacy)
 
+    def test_windows_data_root_does_not_need_home_directory(self):
+        # CI regression: with a cleared environment Path.home() raises on Windows.
+        with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ, {"LOCALAPPDATA": folder}, clear=True), patch("localaigenerator.core.platform.system", return_value="Windows"), patch.object(Path, "home", side_effect=RuntimeError("no home")):
+            self.assertEqual(data_root(), Path(folder) / "LocalAiGenerator")
+
     def test_old_environment_override_still_supported(self):
         with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ, {"LOCALAIGENERATOR_HOME": folder}, clear=True):
             self.assertEqual(data_root(), Path(folder))

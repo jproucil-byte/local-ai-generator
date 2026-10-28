@@ -12,13 +12,13 @@ def data_root():
     if override:
         return Path(override).expanduser()
     if platform.system() == "Windows":
-        base = Path(os.environ.get("LOCALAPPDATA", str(Path.home())))
+        base = Path(os.environ.get("LOCALAPPDATA") or Path.home())
         target, legacy = base / "LocalAiGenerator", base / "LocalAiGenerator"
     elif platform.system() == "Darwin":
         base = Path.home() / "Library" / "Application Support"
         target, legacy = base / "LocalAiGenerator", base / "LocalAiGenerator"
     else:
-        base = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local/share")))
+        base = Path(os.environ["XDG_DATA_HOME"]) if os.environ.get("XDG_DATA_HOME") else Path.home() / ".local/share"
         target, legacy = base / "local-ai-generator", base / "local-ai-generator"
     # Reuse existing weights and settings after the branding change.
     return legacy if legacy.exists() and not target.exists() else target
