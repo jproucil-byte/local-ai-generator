@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "local-ai-generator"
 version = "0.1.0"
-description = "A local-first image, video and audio generation desktop studio"
+description = "A local-first image, video and audio generation desktop app"
 requires-python = ">=3.10,<3.13"
 dependencies = ["PySide6>=6.8,<6.9"]
 

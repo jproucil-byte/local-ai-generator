@@ -1,6 +1,6 @@
 # Local Ai Generator
 
-A Python desktop studio for **offline image, short video, and audio generation**. A dark interface with purple accents, isolated AI worker processes, and no paid generation APIs.
+A Python desktop app for **offline image, short video, and audio generation**. A dark interface with purple accents, isolated AI worker processes, and no paid generation APIs.
 
 **Version 0.1.0 — initial development release.** The app, messages, installers, and documentation are currently English-only. Hardware support means an available backend and a CPU fallback; memory requirements and speed depend on your computer and model. Production quality and compatibility still need to be verified on target devices.
 
@@ -54,7 +54,7 @@ The app uses general workflow ideas familiar from MicrostockForge, such as Auto/
 
 ## App and repository names
 
-The app is named **Local Ai Generator**, its Python package is `localaigenerator`, and its repository is `local-ai-generator`. If data from the earlier Local Ai Generator release already exists, the app reuses that directory and recognizes its download completion markers. Models do not need to be downloaded again. The legacy `LOCALAIGENERATOR_HOME` environment override is also supported.
+The app, its Python package (`localaigenerator`) and its repository (`local-ai-generator`) are all named **Local Ai Generator**.
 
 ## Models and hardware
 
@@ -85,7 +85,7 @@ Models and settings are stored outside the source project:
 - Linux: `~/.local/share/local-ai-generator` (respects `XDG_DATA_HOME`)
 - Custom location: set `LOCALAIGENERATOR_HOME`.
 
-Model weights are in the `models` subfolder, one folder per model (`sd15`, `sdxl`, `turbo`, `ltx`, `audioldm2`), for example `%LOCALAPPDATA%\LocalAiGenerator\models\sd15` on Windows. A model is ready when its folder contains the `.localaigenerator-complete` marker. Deleting a model folder frees its disk space; settings are in `settings.json` next to it.
+Model weights are in the `models` subfolder, one folder per model (`sd15`, `sdxl`, `turbo`, `ltx`, `audioldm2`), for example `%LOCALAPPDATA%\LocalAiGenerator\models\sd15` on Windows. A model is ready when its folder contains the `.localaigenerator-complete` marker (or the equivalent marker of an earlier version). Deleting a model folder frees its disk space; settings are in `settings.json` next to it.
 
 For a computer without internet access, prepare the dependencies and model weights on a connected computer first. Transfer a complete model folder and select it in the app. Install dependencies on the target OS using matching pre-downloaded wheels. If a model requires authorization, use the Hugging Face CLI in the project environment (`hf auth login`) or import an authorized, previously downloaded model folder. The GUI does not provide its own sign-in screen.
 

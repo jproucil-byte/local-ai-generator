@@ -7,7 +7,7 @@ from PySide6.QtGui import QDesktopServices, QPixmap
 from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBox, QFileDialog, QFormLayout, QFrame, QHBoxLayout, QLabel, QLayout, QLineEdit, QMainWindow, QMessageBox, QPlainTextEdit, QProgressBar, QPushButton, QScrollArea, QSpinBox, QStackedWidget, QVBoxLayout, QWidget)
 from . import __version__
 from .catalog import MODELS, get_model
-from .core import Request, load_settings, model_root, save_settings
+from .core import COMPLETE_MARKER, Request, load_settings, model_root, save_settings
 
 STYLE = """
 QWidget { background:#11121a; color:#e8e8f2; font-family:'Segoe UI','Arial'; font-size:13px; }
@@ -47,7 +47,7 @@ def spin(minimum, maximum, value, step=1):
 class Window(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Local Ai Generator — Offline studio")
+        self.setWindowTitle("Local Ai Generator — Offline")
         self.resize(1200, 830)
         self.setMinimumSize(970, 720)
         self.process = None
@@ -68,7 +68,7 @@ class Window(QMainWindow):
         logo = QLabel("◈ Local Ai Generator")
         logo.setObjectName("brand")
         nav.addWidget(logo)
-        nav.addWidget(QLabel("AI STUDIO  /  " + __version__))
+        nav.addWidget(QLabel("OFFLINE AI  /  " + __version__))
         nav.addSpacing(36)
         self.tabs = []
         for kind, label in (("image", "Images"), ("video", "Video"), ("audio", "Audio")):
@@ -260,7 +260,7 @@ class Window(QMainWindow):
     def refresh_model_note(self):
         # Separate from change_model so a finished download does not reset the user's settings.
         model = get_model(self.models.currentData())
-        ready = any((model_root() / model.key / name).exists() for name in (".localaigenerator-complete", ".localaigenerator-complete"))
+        ready = (model_root() / model.key / COMPLETE_MARKER).exists()
         self.note.setText(("✓ Downloaded. " if ready else "Model not downloaded yet. ") + model.note)
 
     def choose_local(self):

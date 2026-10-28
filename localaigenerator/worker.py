@@ -9,7 +9,7 @@ import traceback
 from datetime import datetime, timezone
 from uuid import uuid4
 from .catalog import get_model
-from .core import Request, model_root, select_device
+from .core import COMPLETE_MARKER, Request, model_root, select_device
 
 
 def emit(event, **values):
@@ -26,7 +26,7 @@ def generate(request):
     import diffusers
     model = get_model(request.model)
     source = Path(request.local_model).expanduser() if request.local_model else model_root() / model.key
-    if not request.local_model and not any((source / name).is_file() for name in (".localaigenerator-complete", ".localaigenerator-complete")):
+    if not request.local_model and not (source / COMPLETE_MARKER).is_file():
         raise ValueError("The model download is incomplete. Select Download model again to resume.")
     if not (source / "model_index.json").is_file():
         raise ValueError("The model is not ready. Download it in the app or select a complete Diffusers folder.")
@@ -118,12 +118,12 @@ def download(key):
     model = get_model(key)
     emit("status", text=f"Downloading {model.name}. Models may require several to tens of GB.")
     target = model_root() / key
-    (target / ".localaigenerator-complete").unlink(missing_ok=True)
+    (target / COMPLETE_MARKER).unlink(missing_ok=True)
     # Only Diffusers component weights, not every single-file checkpoint in the repo.
     snapshot_download(repo_id=model.repo, local_dir=str(target), allow_patterns=["*.json", "*/*.safetensors", "*.txt", "*.model", "*.tiktoken", "README*", "LICENSE*", "NOTICE*"], ignore_patterns=["*.fp16.*", "*.non_ema.*", "*.onnx", "*.msgpack"])
     if not (target / "model_index.json").is_file():
         raise ValueError("The repository does not contain a complete Diffusers configuration.")
-    (target / ".localaigenerator-complete").write_text(model.repo, encoding="utf-8")
+    (target / COMPLETE_MARKER).write_text(model.repo, encoding="utf-8")
     emit("done", path=str(model_root() / key), download=True)
 
 

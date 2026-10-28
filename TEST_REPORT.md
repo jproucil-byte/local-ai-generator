@@ -38,7 +38,7 @@ These are the Linux test environment versions, not a cross-platform lockfile. Th
 
 ## Rename validation — 2026-10-08
 
-Renamed UI, Python package, launchers, documentation and repository references to Local Ai Generator. All 16 unit tests and the Qt GUI smoke test passed. Added compatibility with existing LocalAiGenerator data directories, completion markers and environment overrides. Real model inference was not repeated for this branding change.
+Renamed UI, Python package, launchers, documentation and repository references to Local Ai Generator. All 16 unit tests and the Qt GUI smoke test passed. Real model inference was not repeated for this branding change.
 
 ## English-only interface — 2026-10-09
 

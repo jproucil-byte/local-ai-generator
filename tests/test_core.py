@@ -13,18 +13,20 @@ def fake_torch(cuda=False, mps=False, xpu=False):
 
 
 class CoreTests(unittest.TestCase):
-    def test_rename_reuses_existing_linux_data(self):
-        with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ, {"XDG_DATA_HOME": folder}, clear=True), patch("localaigenerator.core.platform.system", return_value="Linux"):
-            legacy = Path(folder) / "local-ai-generator"
-            legacy.mkdir()
-            self.assertEqual(data_root(), legacy)
-
     def test_windows_data_root_does_not_need_home_directory(self):
         # CI regression: with a cleared environment Path.home() raises on Windows.
         with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ, {"LOCALAPPDATA": folder}, clear=True), patch("localaigenerator.core.platform.system", return_value="Windows"), patch.object(Path, "home", side_effect=RuntimeError("no home")):
             self.assertEqual(data_root(), Path(folder) / "LocalAiGenerator")
 
-    def test_old_environment_override_still_supported(self):
+    def test_the_data_folder_has_the_name_of_the_app_on_every_system(self):
+        with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ, {"XDG_DATA_HOME": folder}, clear=True), patch("localaigenerator.core.platform.system", return_value="Linux"):
+            self.assertEqual(data_root(), Path(folder) / "local-ai-generator")
+        with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ, {"LOCALAPPDATA": folder}, clear=True), patch("localaigenerator.core.platform.system", return_value="Windows"):
+            self.assertEqual(data_root(), Path(folder) / "LocalAiGenerator")
+        with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ, {}, clear=True), patch("localaigenerator.core.platform.system", return_value="Darwin"), patch.object(Path, "home", return_value=Path(folder)):
+            self.assertEqual(data_root(), Path(folder) / "Library" / "Application Support" / "LocalAiGenerator")
+
+    def test_environment_override_of_the_data_folder(self):
         with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ, {"LOCALAIGENERATOR_HOME": folder}, clear=True):
             self.assertEqual(data_root(), Path(folder))
 
