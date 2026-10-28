@@ -43,7 +43,9 @@ class WorkerTests(unittest.TestCase):
             utils = SimpleNamespace(export_to_video=lambda frames, path, **kwargs: Path(path).write_bytes(b"MP4"))
             model = worker.get_model(key)
             request = Request(key, "test", folder, local_model=str(source), width=model.width, height=model.height, steps=model.steps, guidance=model.guidance, seed=42)
-            modules = {"torch": torch, "diffusers": SimpleNamespace(**{model.pipeline: factory}), "soundfile": sf, "diffusers.utils": utils}
+            language_model = Mock()
+            transformers = SimpleNamespace(GPT2LMHeadModel=SimpleNamespace(from_pretrained=Mock(return_value=language_model)))
+            modules = {"torch": torch, "diffusers": SimpleNamespace(**{model.pipeline: factory}), "soundfile": sf, "diffusers.utils": utils, "transformers": transformers}
             events = []
             with patch.dict(sys.modules, modules), patch.dict(os.environ, {}, clear=False), patch.object(worker, "emit", lambda event, **kwargs: events.append({"event": event, **kwargs})):
                 worker.generate(request)
@@ -51,6 +53,11 @@ class WorkerTests(unittest.TestCase):
             factory.from_pretrained.assert_called_once()
             self.assertTrue(factory.from_pretrained.call_args.kwargs["local_files_only"])
             self.assertTrue(factory.from_pretrained.call_args.kwargs["use_safetensors"])
+            # AudioLDM 2 needs its language model loaded as GPT2LMHeadModel (generation helpers); others must not.
+            if key == "audioldm2":
+                self.assertIs(factory.from_pretrained.call_args.kwargs["language_model"], language_model)
+            else:
+                self.assertNotIn("language_model", factory.from_pretrained.call_args.kwargs)
             done = events[-1]
             self.assertEqual(done["event"], "done")
             path = Path(done["path"])
@@ -87,6 +94,8 @@ class WorkerTests(unittest.TestCase):
                 (target / "model_index.json").write_text("{}")
                 self.assertIn("*/*.safetensors", kwargs["allow_patterns"])
                 self.assertNotIn("*.safetensors", kwargs["allow_patterns"])
+                # SD 1.5 ships a second, unused 3.4 GB UNet copy (*.non_ema.safetensors).
+                self.assertIn("*.non_ema.*", kwargs["ignore_patterns"])
             with patch.dict(sys.modules, {"huggingface_hub": SimpleNamespace(snapshot_download=snapshot)}), patch.object(worker, "model_root", lambda: Path(folder)), patch.object(worker, "emit"):
                 worker.download("ltx")
             self.assertTrue((Path(folder) / "ltx" / ".localaigenerator-complete").exists())

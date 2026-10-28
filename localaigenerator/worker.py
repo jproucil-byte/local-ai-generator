@@ -36,7 +36,14 @@ def generate(request):
         dtype = torch.bfloat16 if model.kind == "video" and device == "cuda" and torch.cuda.is_bf16_supported() else torch.float16
     # float32 on MPS is conservative; unsupported operations fail with a CPU recommendation.
     emit("status", text=f"Loading {model.name} on {device.upper()}…")
-    pipe = getattr(diffusers, model.pipeline).from_pretrained(str(source.resolve()), local_files_only=True, torch_dtype=dtype, use_safetensors=True)
+    components = {}
+    if model.pipeline == "AudioLDM2Pipeline":
+        # The repository declares its language model as GPT2Model, which transformers >= 4.50 no longer
+        # equips with the generation helpers the pipeline calls (_get_initial_cache_position). The same
+        # weights load as GPT2LMHeadModel (tied head), which has them in every supported version.
+        from transformers import GPT2LMHeadModel
+        components["language_model"] = GPT2LMHeadModel.from_pretrained(str(source.resolve() / "language_model"), local_files_only=True, torch_dtype=dtype, use_safetensors=True)
+    pipe = getattr(diffusers, model.pipeline).from_pretrained(str(source.resolve()), local_files_only=True, torch_dtype=dtype, use_safetensors=True, **components)
     pipe.set_progress_bar_config(disable=True)
     if device == "cuda" and request.offload:
         pipe.enable_model_cpu_offload()
@@ -109,7 +116,7 @@ def download(key):
     target = model_root() / key
     (target / ".localaigenerator-complete").unlink(missing_ok=True)
     # Only Diffusers component weights, not every single-file checkpoint in the repo.
-    snapshot_download(repo_id=model.repo, local_dir=str(target), allow_patterns=["*.json", "*/*.safetensors", "*.txt", "*.model", "*.tiktoken", "README*", "LICENSE*", "NOTICE*"], ignore_patterns=["*.fp16.*", "*.onnx", "*.msgpack"])
+    snapshot_download(repo_id=model.repo, local_dir=str(target), allow_patterns=["*.json", "*/*.safetensors", "*.txt", "*.model", "*.tiktoken", "README*", "LICENSE*", "NOTICE*"], ignore_patterns=["*.fp16.*", "*.non_ema.*", "*.onnx", "*.msgpack"])
     if not (target / "model_index.json").is_file():
         raise ValueError("The repository does not contain a complete Diffusers configuration.")
     (target / ".localaigenerator-complete").write_text(model.repo, encoding="utf-8")
