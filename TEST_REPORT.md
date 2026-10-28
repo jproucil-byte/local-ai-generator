@@ -54,4 +54,32 @@ Results: 18 unit tests pass (2 new) and the new tests fail on the previous code;
 
 Checked in the real Windows desktop app (Python 3.12 virtual environment, Czech system locale): the validation message for an empty prompt, a Czech prompt with diacritics, a clear error and a clean return to the idle state when no model is downloaded, and the Stop button while the worker is starting.
 
-Still not verified: any generation from the standard data directory on this machine (no model was downloaded there during this check), SDXL Base and SDXL Turbo, LTX Video and AudioLDM 2 inference, CPU generation in the GUI, import of a local model folder, and GPU backends other than the earlier CUDA run (SD 1.5, 512 × 512, 10 steps, seed 42).
+## Real hardware: Windows 11 + NVIDIA RTX 4060 (8 GB VRAM) — 2026-10-18
+
+Environment: Windows 11, Python 3.12, CUDA build of PyTorch, diffusers 0.36.0, transformers 4.57.6, Czech system locale. Every model was downloaded through the app into the standard data directory and generated through the GUI (offline worker).
+
+| Model | Result on the RTX 4060 |
+|---|---|
+| Stable Diffusion 1.5 | Works on CUDA and on CPU (slow). |
+| SDXL Turbo | Works. |
+| SDXL Base | Works. 8 GB is close to the limit; keep **Save VRAM with CPU offload** enabled. |
+| AudioLDM 2 | Works after the fix below; 5 s of audio in about 7 s. |
+| LTX Video | **Not verified.** The 28 GB download was stopped before it finished. The T5-XXL text encoder alone needs about 9.5 GB in bf16, more than the 8 GB of VRAM, so `enable_model_cpu_offload()` is expected to run out of memory. A layer-wise offload or CPU text encoding would be needed and has not been implemented or tested. |
+
+Found and fixed:
+
+- **AudioLDM 2 failed** with `'GPT2Model' object has no attribute '_get_initial_cache_position'`. The repository declares its language model as `GPT2Model`, which transformers 4.50 and later no longer equips with the generation helpers the pipeline calls. The worker now loads the same weights as `GPT2LMHeadModel` and passes them to the pipeline. A unit test checks that only AudioLDM 2 receives this component.
+- **Downloads fetched a second, unused UNet.** SD 1.5 ships `*.non_ema.safetensors` (3.4 GB). It is now ignored: the SD 1.5 download is about 5.5 GB instead of 8.9 GB. Folders downloaded before this change can keep the extra file; deleting `unet/diffusion_pytorch_model.non_ema.safetensors` is safe.
+
+Also confirmed in the real app: validation message for an empty prompt, Czech prompt with diacritics, clean error when no model is downloaded, the Stop button during loading, and an output path containing `č` and `ř`.
+
+Observed but not changed (candidates for the next version):
+
+- `Setup-AI-GPU.bat` installs PyTorch from PyPI, which is a CPU-only build on Windows. On a fresh install generation runs on the CPU. NVIDIA users need a CUDA build (`--index-url https://download.pytorch.org/whl/cu128`).
+- `enable_vae_slicing()` and the `torch_dtype` argument produce deprecation warnings in the current libraries.
+- After a model download the numeric settings are reset to the model defaults.
+- The model is reloaded for every generation; keeping it loaded would speed up repeated runs.
+- CPU offload is on by default, which makes small models (SD 1.5, SDXL Turbo) slower than necessary on a GPU with enough VRAM.
+- Downloads are fp32 and converted on load; fp16 variants would roughly halve disk use.
+
+Not verified: LTX Video, GPU backends other than this NVIDIA card (AMD ROCm, Intel XPU, Apple MPS), macOS, import of a local model folder, and air-gapped installation on a separate machine.

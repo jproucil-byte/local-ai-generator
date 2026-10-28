@@ -68,6 +68,8 @@ The app is named **Local Ai Generator**, its Python package is `localaigenerator
 
 Exact resource requirements are not guaranteed. They depend on the model, resolution, duration, weight precision, and OS. Computers with insufficient RAM can fail even in CPU mode. If memory runs out, reduce the resolution or frame count, close other applications, or choose a smaller model. MPS uses conservative float32 precision, which can require more memory. XPU and ROCm require compatible PyTorch builds and drivers; they have not been verified here.
 
+Verified on Windows 11 with an NVIDIA RTX 4060 (8 GB VRAM) and a CUDA build of PyTorch: SD 1.5, SDXL Base, SDXL Turbo and AudioLDM 2 generate successfully. LTX Video is not verified on 8 GB VRAM; its text encoder alone needs about 9.5 GB. See `TEST_REPORT.md`.
+
 LTX requires dimensions divisible by 32 and `8n+1` frames (for example, 25, 49, or 81). Approximate exported duration = frames / FPS. The default 25 frames at 24 FPS produces about 1.04 seconds. English prompts are recommended for both image and audio models; an offline translator is not included.
 
 ## Offline mode and model files
@@ -82,6 +84,8 @@ Models and settings are stored outside the source project:
 - macOS: `~/Library/Application Support/LocalAiGenerator`
 - Linux: `~/.local/share/local-ai-generator` (respects `XDG_DATA_HOME`)
 - Custom location: set `LOCALAIGENERATOR_HOME`.
+
+Model weights are in the `models` subfolder, one folder per model (`sd15`, `sdxl`, `turbo`, `ltx`, `audioldm2`), for example `%LOCALAPPDATA%\LocalAiGenerator\models\sd15` on Windows. A model is ready when its folder contains the `.localaigenerator-complete` marker. Deleting a model folder frees its disk space; settings are in `settings.json` next to it.
 
 For a computer without internet access, prepare the dependencies and model weights on a connected computer first. Transfer a complete model folder and select it in the app. Install dependencies on the target OS using matching pre-downloaded wheels. If a model requires authorization, use the Hugging Face CLI in the project environment (`hf auth login`) or import an authorized, previously downloaded model folder. The GUI does not provide its own sign-in screen.
 
